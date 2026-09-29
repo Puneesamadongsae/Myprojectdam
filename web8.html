@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สถานการณ์น้ำเขื่อนที่สำคัญในประเทศไทย | Thai National Dam Information Center</title>
+    
+    <!-- Google Fonts, Leaflet CSS & Search Plugin -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #006699;
+            --accent-color: #00a86b;
+            --bg-color: #f4f7f9;
+            --text-color: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Top Header & Logo Section */
+        header {
+            background-color: #ffffff;
+            border-bottom: 4px solid var(--primary-color);
+            padding: 15px 5%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-placeholder {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .header-titles h1 {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .header-titles p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: var(--primary-color);
+            padding: 10px 5%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: #81d4fa;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* Dam Cards / Gallery (6 ภาค) */
+        .dam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .dam-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+
+        .dam-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .dam-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .dam-card-body {
+            padding: 18px;
+        }
+
+        .dam-card-body h3 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .dam-card-body p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .meta-tag {
+            display: inline-block;
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Map Section & Control Panel */
+        .map-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }
+
+        .map-header-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 5px;
+        }
+
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            width: 240px;
+        }
+
+        .search-container button {
+            padding: 8px 15px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .search-container button:hover {
+            background: var(--primary-color);
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        /* Leaflet Popup Styling */
+        .popup-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .popup-box p {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .popup-box a {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 5px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .popup-box a:hover {
+            background: var(--primary-color);
+        }
+
+        /* Footer Section */
+        footer {
+            background-color: #1a252f;
+            color: #ecf0f1;
+            padding: 40px 5% 20px;
+            margin-top: 50px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-col h4 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 5px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-col ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .footer-col ul li a:hover {
+            color: white;
+        }
+
+        .author-section {
+            max-width: 1200px;
+            margin: 30px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .author-info h5 {
+            color: #3498db;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .author-info p {
+            font-size: 13px;
+            color: #bdc3c7;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo-group">
+            <img src="img/โลโก้.jpg" alt="โลโก้" width="200"
+                <div class="logo-placeholder" style="background:#006699;"></div>
+                <div class="header-titles">
+                    <h1>เขื่อนที่สำคัญในประเทศไทยในแต่ละภาค</h1>
+                    <p>ระบบบูรณาการข้อมูลเพื่อการบริหารจัดการน้ำและการเตือนภัย (วิจัย)</p>
+                </div>
+            </div>
+            <div>
+                <span style="font-size: 12px; color: #888;">ข้อมูลอัปเดตล่าสุด: พ.ศ. 2569</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#overview">บทนำและบทบาท</a>
+            <a href="#major-dams">เขื่อนเด่น 6 ภูมิภาค</a>
+            <a href="#gis-map">แผนที่ภูมิสารสนเทศ (GIS Map)</a>
+            <a href="#toc">สารบัญดรรชนี</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        
+        <!-- Section: Overview -->
+        <section id="overview" style="margin-bottom: 40px;">
+            <h2 class="section-title">บทบาท คำนิยาม ความหมายและความสำคัญของเขื่อนในประเทศไทย</h2>
+            <p>เขื่อนในประเทศไทยมีความสำคัญอย่างยิ่งต่อการบริหารจัดการทรัพยากรน้ำแบบบูรณาการ ทั้งในด้านการชลประทานเพื่อการเกษตรกรรม การอุปโภคบริโภค การบรรเทาอุทกภัยในช่วงฤดูฝน รวมถึงการผลิตกระแสไฟฟ้าพลังงานสะอาด (Hydroelectric Power) และการผลักดันน้ำเค็มเพื่อรักษาระบบนิเวศปากแม่น้ำ ควบคุมดูแลโดยหน่วยงานหลัก อาทิ การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.) และกรมชลประทาน
+                สรุปบทบาทและภาพรวมของเขื่อนในแต่ละภาคของไทย
+
+ภาคเหนือ: เน้นการกักเก็บน้ำจากต้นน้ำสายหลัก (แม่น้ำปิง วัง ยม น่าน) เพื่อป้องกันน้ำท่วมภาคกลาง และส่งน้ำเพื่อการเกษตรกรรมตลอดทั้งปี (เช่น เขื่อนภูมิพล เขื่อนสิริกิติ์)
+
+ภาคตะวันออกเฉียงเหนือ (อีสาน): เน้นแก้ปัญหาระบบน้ำในพื้นที่แห้งแล้ง บรรเทาภัยแล้ง ผลิตกระแสไฟฟ้า และสนับสนุนการเกษตรในลุ่มน้ำชี-มูน (เช่น เขื่อนอุบลรัตน์ เขื่อนสิรินธร)
+
+ภาคกลางและภาคตะวันตก: เน้นบริหารจัดการน้ำเพื่อการเกษตร ชลประทาน ผลิตไฟฟ้า และผลักดันน้ำเค็มบริเวณปากแม่น้ำ (เช่น เขื่อนศรีนครินทร์ เขื่อนป่าสักชลสิทธิ์)
+
+ภาคตะวันออก: เน้นส่งน้ำเพื่อรองรับการอุปโภคบริโภค ภาคอุตสาหกรรม (เขต EEC) และการเกษตรกรรม (เช่น เขื่อนขุนด่านปราการชล เขื่อนคลองท่าด่าน)
+
+ภาคใต้: เน้นการกักเก็บน้ำเพื่ออุปโภคบริโภค การท่องเที่ยว ป้องกันอุทกภัยในพื้นที่ และผลิตกระแสไฟฟ้า (เช่น เขื่อนรัชชประภา/เชี่ยวหลาน เขื่อนบางลาง)
+            </p>
+        </section>
+
+        <!-- Section: Major Dams (6 ภาค) -->
+        <section id="major-dams">
+            <h2 class="section-title">ข้อมูลเขื่อนขนาดใหญ่ที่สำคัญ (แยกตาม 6 ภูมิภาค)</h2>
+            
+            <div class="dam-grid">
+                <!-- 1. ภาคเหนือ -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนภูมิพล.jpeg" alt="เขื่อนภูมิพล">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคเหนือ | จ.ตาก</span>
+                        <h3>เขื่อนภูมิพล</h3>
+                        <p>เขื่อนคอนกรีตโค้งแห่งเดียวในไทย กั้นแม่น้ำปิง มีความจุเก็บกักน้ำสูงสุด 13,462 ล้านลูกบาศก์เมตร</p>
+                        <a href="https://www.egat.co.th/home/bhumibol-dm-specification/" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- 2. ภาคตะวันออกเฉียงเหนือ -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนภาคอีสาน.jpg" alt="เขื่อนอุบลรัตน์" onerror="this.src='https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400'">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคอีสาน | จ.ขอนแก่น</span>
+                        <h3>เขื่อนอุบลรัตน์</h3>
+                        <p>เขื่อนผลิตไฟฟ้าพลังน้ำอเนกประสงค์แห่งแรกในภาคอีสาน กั้นแม่น้ำพอง ความจุ 2,431 ล้าน ลบ.ม.</p>
+                        <a href="https://www.egat.co.th/home/ubol-ratana-dm/" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- 3. ภาคกลาง -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนป่าสัก.jpg" alt="เขื่อนป่าสักชลสิทธิ์" onerror="this.src='https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400'">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคกลาง | จ.ลพบุรี</span>
+                        <h3>เขื่อนป่าสักชลสิทธิ์</h3>
+                        <p>เขื่อนดินแกนดินเหนียวยาวที่สุดในไทย กั้นแม่น้ำป่าสัก แก้ไขปัญหาน้ำท่วมและกักเก็บน้ำในลุ่มน้ำป่าสัก ความจุ 960 ล้าน ลบ.ม.</p>
+                        <a href="https://www.egat.co.th/home/pasak-jolasid-rohpp/" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- 4. ภาคตะวันออก -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนขุนด่าน.jpg" alt="เขื่อนขุนด่านปราการชล" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400'">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคตะวันออก | จ.นครนายก</span>
+                        <h3>เขื่อนขุนด่านปราการชล</h3>
+                        <p>เขื่อนคอนกรีตอัดบดยาวที่สุดในโลก (2,720 เมตร) รับน้ำจากอุทยานแห่งชาติเขาใหญ่ ความจุ 224 ล้าน ลบ.ม.</p>
+                        <a href="https://www.egat.co.th/home/khun-dan-prakarn-chon-rohpp/" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- 5. ภาคตะวันตก -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนศรีณคริณร์.jpeg" alt="เขื่อนศรีนครินทร์">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคตะวันตก | จ.กาญจนบุรี</span>
+                        <h3>เขื่อนศรีนครินทร์</h3>
+                        <p>เขื่อนประเภทหินถมแกนดินเหนียว มีความจุเก็บกักน้ำได้มากที่สุดในไทย (17,745 ล้าน ลบ.ม.) บนแม่น้ำแควใหญ่</p>
+                        <a href="https://www.egat.co.th/home/srinakarin-dm/" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- 6. ภาคใต้ -->
+                <div class="dam-card">
+                    <img src="img/เขื่อนภาคใต้.jpg" alt="เขื่อนรัชชประภา" onerror="this.src='https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=400'">
+                    <div class="dam-card-body">
+                        <span class="meta-tag">ภาคใต้ | จ.สุราษฎร์ธานี</span>
+                        <h3>เขื่อนรัชชประภา (เชี่ยวหลาน)</h3>
+                        <p>เขื่อนหินถมแกนดินเหนียวที่สำคัญของภาคใต้ ตั้งอยู่ในเขตอุทยานแห่งชาติเขาสก ความจุ 5,639 ล้าน ลบ.ม.</p>
+                        <a href="https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%82%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%A3%E0%B8%B1%E0%B8%8A%E0%B8%8A%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%A0%E0%B8%B2" target="_blank" style="color: var(--secondary-color); font-weight: bold; font-size: 13px; text-decoration: none;">เข้าสู่เว็บไซต์เขื่อน &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Interactive Map (Google Maps Style with Search & Satellite) -->
+        <section id="gis-map" class="map-section">
+            <div class="map-header-tools">
+                <div>
+                    <h2 class="section-title" style="border:none; margin:0; padding:0;">แผนที่ภูมิสารสนเทศเขื่อน (GIS Interactive Map)</h2>
+                    <p style="font-size: 13px; color: #666;">สลับโหมดแผนที่ดาวเทียม/ถนน ได้ที่มุมขวาบนของแผนที่ หรือพิมพ์ค้นหาชื่อเขื่อน</p>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="damSearchInput" placeholder="พิมพ์ชื่อเขื่อน... (เช่น ภูมิพล, ป่าสัก)">
+                    <button onclick="searchDamOnMap()">ค้นหาเขื่อน</button>
+                </div>
+            </div>
+            
+            <div id="map"></div>
+        </section>
+
+    </div>
+
+    <!-- Footer & Table of Contents -->
+    <footer id="toc">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h4>สารบัญเขื่อนภาคเหนือ & ตะวันตก</h4>
+                <ul>
+                    <li><a href="https://www.egat.co.th/home/bhumibol-dm-specification/" target="_blank">เขื่อนภูมิพล (จ.ตาก)</a></li>
+                    <li><a href="https://www.egat.co.th/home/sirikit-dm/" target="_blank">เขื่อนสิริกิติ์ (จ.อุตรดิตถ์)</a></li>
+                    <li><a href="https://www.egat.co.th/home/srinakarin-dm/" target="_blank">เขื่อนศรีนครินทร์ (จ.กาญจนบุรี)</a></li>
+                    <li><a href="https://www.egat.co.th/home/vajiralongkorn-dm/" target="_blank">เขื่อนวชิราลงกรณ (จ.กาญจนบุรี)</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>สารบัญเขื่อนภาคกลาง & ตะวันออก</h4>
+                <ul>
+                    <li><a href="https://www.egat.co.th/home/pasak-jolasid-rohpp/" target="_blank">เขื่อนป่าสักชลสิทธิ์ (จ.ลพบุรี)</a></li>
+                    <li><a href="https://www.egat.co.th/home/khun-dan-prakarn-chon-rohpp/" target="_blank">เขื่อนขุนด่านปราการชล (จ.นครนายก)</a></li>
+                    <li><a href="https://www.egat.co.th/home/chao-phraya-rohpp/" target="_blank">เขื่อนเจ้าพระยา (จ.ชัยนาท)</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>สารบัญเขื่อนภาคอีสาน & ภาคใต้</h4>
+                <ul>
+                    <li><a href="https://www.egat.co.th/home/ubol-ratana-dm-about/" target="_blank">เขื่อนอุบลรัตน์ (จ.ขอนแก่น)</a></li>
+                    <li><a href="https://www.egat.co.th/home/sirindhorn-dm/" target="_blank">เขื่อนสิรินธร (จ.อุบลราชธานี)</a></li>
+                    <li><a href="https://www.egat.co.th/home/ratchaprapha-dm-about/" target="_blank">เขื่อนรัชชประภา (จ.สุราษฎร์ธานี)</a></li>
+                    <li><a href="https://www.egat.co.th/home/bang-lang-dm/" target="_blank">เขื่อนบางลาง (จ.ยะลา)</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>หน่วยงานอ้างอิง</h4>
+                <ul>
+                    <li><a href="https://www.egat.co.th" target="_blank">การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)</a></li>
+                    <li><a href="http://www.rid.go.th" target="_blank">กรมชลประทาน</a></li>
+                    <li><a href="https://www.tmd.go.th" target="_blank">กรมอุตุนิยมวิทยา</a></li>
+                    <li><a href="https://www.onwr.go.th" target="_blank">สำนักงานทรัพยากรน้ำแห่งชาติ (สทนช.)</a></li>
+                    <li><a href="https://th.wikipedia.org/wiki/%E0%B8%A7%E0%B8%B4%E0%B8%81%E0%B8%B4%E0%B8%9E%E0%B8%B5%E0%B9%80%E0%B8%94%E0%B8%B5%E0%B8%A2" target="_blank">วิกิพีเดีย</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ส่วนข้อมูลผู้จัดทำ -->
+        <div class="author-section">
+            <div class="author-info">
+                <h5>คณะผู้จัดทำโครงการ (Developer Team)</h5>
+                <p>นางสาวภูนีษา มะดงแซ รหัสนักศึกษา: 6820210714 </p>
+                <p>สาขาวิชาภูมิศาสตร์ มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี</p>
+            </div>
+            <div class="author-info" style="text-align: right;">
+                <p><b>วิชา:</b>Computer For Geographer</p>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p>&copy; 2569 ศูนย์สารสนเทศและสถานการณ์น้ำเขื่อนในประเทศไทย - รวบรวมข้อมูลเพื่อการศึกษาและวิจัยทางภูมิศาสตร์</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet Map Script (เปิดซับพอร์ตภาพถ่ายดาวเทียม + ค้นหา) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. ตั้งค่า Layer แผนที่แบบต่างๆ (เหมือน Google Maps)
+        const streetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18,
+            attribution: 'Tiles © Esri'
+        });
+
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18,
+            attribution: 'Source: Esri, Maxar, Earthstar Geographics'
+        });
+
+        const terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap'
+        });
+
+        // 2. เริ่มต้น Map ที่จุดศูนย์กลางประเทศไทย
+        const map = L.map('map', {
+            center: [13.0000, 101.5000],
+            zoom: 6,
+            layers: [streetLayer] // เริ่มต้นด้วยแผนที่ถนน
+        });
+
+        // 3. เพิ่มเมนูสลับแผนที่ (ดาวเทียม/ถนน/ภูมิประเทศ) ที่มุมขวาบน
+        const baseMaps = {
+            "🗺️ แผนที่ถนน (Street)": streetLayer,
+            "🛰️ ภาพถ่ายดาวเทียม (Satellite)": satelliteLayer,
+            "⛰️ แผนที่ภูมิประเทศ (Terrain)": terrainLayer
+        };
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+        // 4. ข้อมูลเขื่อนเด่นประจำ 6 ภูมิภาค
+        const damLocations = [
+            {
+                region: "ภาคเหนือ",
+                name: "เขื่อนภูมิพล",
+                lat: 17.2425,
+                lng: 98.9719,
+                province: "ตาก",
+                desc: "เขื่อนคอนกรีตโค้งแห่งเดียวในไทย ความจุ 13,462 ล้าน ลบ.ม.",
+                link: "https://www.egat.co.th/home/bhumibol-dm-specification/"
+            },
+            {
+                region: "ภาคตะวันออกเฉียงเหนือ",
+                name: "เขื่อนอุบลรัตน์",
+                lat: 16.7725,
+                lng: 102.6186,
+                province: "ขอนแก่น",
+                desc: "เขื่อนอเนกประสงค์แห่งแรกในภาคอีสาน ความจุ 2,431 ล้าน ลบ.ม.",
+                link: "https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%82%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%AD%E0%B8%B8%E0%B8%9A%E0%B8%A5%E0%B8%A3%E0%B8%B1%E0%B8%95%E0%B8%99%E0%B9%8C"
+            },
+            {
+                region: "ภาคกลาง",
+                name: "เขื่อนป่าสักชลสิทธิ์",
+                lat: 14.8631,
+                lng: 101.0772,
+                province: "ลพบุรี",
+                desc: "เขื่อนดินแกนดินเหนียวยาวที่สุดในไทย ความจุ 960 ล้าน ลบ.ม.",
+                link: "https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%82%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%9B%E0%B9%88%E0%B8%B2%E0%B8%AA%E0%B8%B1%E0%B8%81%E0%B8%8A%E0%B8%A5%E0%B8%AA%E0%B8%B4%E0%B8%97%E0%B8%98%E0%B8%B4%E0%B9%8C"
+            },
+            {
+                region: "ภาคตะวันออก",
+                name: "เขื่อนขุนด่านปราการชล",
+                lat: 14.3142,
+                lng: 101.3203,
+                province: "นครนายก",
+                desc: "เขื่อนคอนกรีตอัดบดยาวที่สุดในโลก ความจุ 224 ล้าน ลบ.ม.",
+                link: "https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%82%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%82%E0%B8%B8%E0%B8%99%E0%B8%94%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%8A%E0%B8%A5"
+            },
+            {
+                region: "ภาคตะวันตก",
+                name: "เขื่อนศรีนครินทร์",
+                lat: 14.4055,
+                lng: 99.1236,
+                province: "กาญจนบุรี",
+                desc: "เขื่อนหินถมแกนดินเหนียว ความจุมากที่สุดในไทย 17,745 ล้าน ลบ.ม.",
+                link: "https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%82%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%B4%E0%B8%99%E0%B8%97%E0%B8%A3%E0%B9%8C"
+            },
+            {
+                region: "ภาคใต้",
+                name: "เขื่อนรัชชประภา",
+                lat: 8.9774,
+                lng: 98.8105,
+                province: "สุราษฎร์ธานี",
+                desc: "เขื่อนอเนกประสงค์สำคัญภาคใต้ (เชี่ยวหลาน) ความจุ 5,639 ล้าน ลบ.ม.",
+                link: "https://www.egat.co.th/home/ratchaprapha-dm-about/"
+            }
+        ];
+
+        // เก็บอ้างอิง Marker สำหรับระบบค้นหา
+        const damMarkerStore = {};
+
+        // 5. วนลูปปักหมุดบนแผนที่
+        damLocations.forEach(dam => {
+            const popupHtml = `
+                <div class="popup-box">
+                    <h4>${dam.name} (${dam.region})</h4>
+                    <p><b>จังหวัด:</b> ${dam.province}<br><b>พิกัด:</b> ${dam.lat}, ${dam.lng}<br>${dam.desc}</p>
+                    <a href="${dam.link}" target="_blank">เปิดเว็บไซต์ข้อมูลเขื่อน</a>
+                </div>
+            `;
+            
+            const marker = L.marker([dam.lat, dam.lng]).addTo(map).bindPopup(popupHtml);
+            damMarkerStore[dam.name] = { marker: marker, lat: dam.lat, lng: dam.lng };
+        });
+
+        // 6. ฟังก์ชันค้นหาเขื่อน
+        function searchDamOnMap() {
+            const input = document.getElementById('damSearchInput').value.trim();
+            let found = false;
+
+            for (let damName in damMarkerStore) {
+                if (damName.includes(input) && input !== "") {
+                    const item = damMarkerStore[damName];
+                    map.setView([item.lat, item.lng], 11); // ซูมเข้าไปใกล้ๆ
+                    item.marker.openPopup();
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found && input !== "") {
+                alert("ไม่พบข้อมูลเขื่อนที่ค้นหา กรุณาลองพิมพ์ชื่อ เช่น ภูมิพล, อุบลรัตน์, ป่าสัก, ขุนด่าน, ศรีนครินทร์, รัชชประภา");
+            }
+        }
+    </script>
+</body>
+</html>
